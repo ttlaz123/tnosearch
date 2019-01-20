@@ -3,7 +3,9 @@
 starttime=`date +%s`
 source /global/common/software/dessn/edison/tno/setup.sh
 source /global/common/software/dessn/edison/destnos/setup_dg.sh
-
+###############################################################
+#FILEPATH EDITS
+###############################################################
 #module load PrgEnv-gnu
 #module swap PrgEnv-intel PrgEnv-gnu
 #module load gcc/7.3.0
@@ -12,6 +14,15 @@ source /global/common/software/dessn/edison/destnos/setup_dg.sh
 #FILES=/scratch2/scratchdirs/liuto/
 TNO_DIR=/global/common/software/dessn/edison/tno/
 FILES=/scratch3/scratchdirs/masao/tno/
+FILES_DIR=${FILES}Data/
+SCRIPTS_DIR=${TNO_DIR}NewLinker/
+#detDir=${TNO_DIR}TTcsvDetectionFiles/
+detDir=${FILES_DIR}TTcsvDetectionFiles/
+
+################################################
+# DO NOT EDIT BELOW THIS LINE
+#################################################
+
 
 script=$1
 objtype=$2
@@ -34,11 +45,8 @@ then
     exit
 fi
 
-FILES_DIR=${FILES}Data/
-SCRIPTS_DIR=${TNO_DIR}NewLinker/
 export TNO_PATH=$SCRIPTS_DIR
-#detDir=${TNO_DIR}TTcsvDetectionFiles/
-detDir=${FILES_DIR}TTcsvDetectionFiles/
+
 startDir=${FILES_DIR}${objtype}_SEASON${season}_ML${ml}_start/
 chunkDir=${FILES_DIR}${objtype}_SEASON${season}_ML${ml}_chunks/
 siftChunkDir=${FILES_DIR}${objtype}_SEASON${season}_ML${ml}_siftedChunks/
@@ -46,7 +54,6 @@ growChunkDir=${FILES_DIR}${objtype}_SEASON${season}_ML${ml}_growChunks/
 splitChunkDir=${FILES_DIR}${objtype}_SEASON${season}_ML${ml}_splitChunks/
 extractChunkDir=${FILES_DIR}${objtype}_SEASON${season}_ML${ml}_extractChunks/
 finalDir=${FILES_DIR}${objtype}_SEASON${season}_ML${ml}_finalStretch/
-
 
 regionsFile=${startDir}regions+${objtype}_SEASON${season}_ML${ml}.pickle
 linkFile=${startDir}detectionLinks+${objtype}_SEASON${season}_ML${ml}.pickle
