@@ -3,29 +3,16 @@
 starttime=`date +%s`
 source /global/common/software/dessn/edison/tno/setup.sh
 source /global/common/software/dessn/edison/destnos/setup_dg.sh
-#####################################
-#
-#
-######################################
 
 #module load PrgEnv-gnu
 #module swap PrgEnv-intel PrgEnv-gnu
 #module load gcc/7.3.0
 #module swap gcc/4.9.3 gcc/7.3.0
-TNO_DIR=/global/project/projectdirs/dessn/diffim/TNOsearch/
-FILES=/scratch2/scratchdirs/liuto/Data/
-#TNO_DIR=/global/common/software/dessn/edison/tno/
-#FILES=/scratch2/scratchdirs/masao/tno/
-FILES_DIR=${FILES}NewLinkerTester/
-SCRIPTS_DIR=${TNO_DIR}NewLinker/
-detDir=${TNO_DIR}TTcsvDetectionFiles/
-#detDir=${FILES_DIR}TTcsvDetectionFiles/
+#TNO_DIR=/global/project/projectdirs/dessn/diffim/TNOsearch/
+#FILES=/scratch2/scratchdirs/liuto/
+TNO_DIR=/global/common/software/dessn/edison/tno/
+FILES=/scratch3/scratchdirs/masao/tno/
 
-#################################################
-# 
-# DO NOT EDIT BELOW THIS BOX
-#
-##################################################
 script=$1
 objtype=$2
 season=$3
@@ -47,8 +34,11 @@ then
     exit
 fi
 
-
+FILES_DIR=${FILES}Data/
+SCRIPTS_DIR=${TNO_DIR}NewLinker/
 export TNO_PATH=$SCRIPTS_DIR
+#detDir=${TNO_DIR}TTcsvDetectionFiles/
+detDir=${FILES_DIR}TTcsvDetectionFiles/
 startDir=${FILES_DIR}${objtype}_SEASON${season}_ML${ml}_start/
 chunkDir=${FILES_DIR}${objtype}_SEASON${season}_ML${ml}_chunks/
 siftChunkDir=${FILES_DIR}${objtype}_SEASON${season}_ML${ml}_siftedChunks/
@@ -126,7 +116,7 @@ then
     else
         cmd="${pythonPath} ${linkFile} -n 100000"
     fi
-    if [[ $((chunk)) != $chunk ]]; then
+    if [[ $chunk =~ ^-?[0-9]+$ ]]; then
         cmd="$cmd -c $chunkFile"
     fi
     toDir=$chunkDir
