@@ -77,7 +77,7 @@ def inRange(coord1, coord2, radius):
     #print('thres: ' + str(thresh))
     '''
     dist1 = (coord1[1]-coord2[1])
-    dist2 = ((coord1[0]-coord2[0])*np.cos(dist1*np.pi/180))
+    dist2 = ((coord1[0]-coord2[0])*np.cos(coord2[1]*np.pi/180))
     dist = dist1**2 + dist2**2
 
     return dist < radius**2
