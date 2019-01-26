@@ -109,7 +109,7 @@ def main():
         chunkSize = int(args.chunkSize)
     saveName = args.linkedPairs.split('+')[-1].split('.')[0]
     print('forming triplets')
-    triplets = formTriplets(detPairs, chunkSize, saveName, tripletStart, chunkStart))
+    triplets = formTriplets(detPairs, chunkSize, saveName, tripletStart, chunkStart)
 
     #tripChunks = splitList(triplets, numChunks, buffered, saveName, printP)
     #triplets = multiProcessPairs(detPairs, Ncpu)    
