@@ -1,5 +1,6 @@
 import os
 import sys
+import gc
 try:
     tnopath = os.environ['TNO_PATH']
 except KeyError:
@@ -24,6 +25,14 @@ from operator import itemgetter
 
 import LinkerLib as LL
 from LinkerLib import Triplet, Detection
+
+def sizeof_fmt(num, suffix='B'):
+    ''' By Fred Cirera, after https://stackoverflow.com/a/1094933/1870254'''
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 '''
 1. Make a dictionary that maps MJD range to list of corresponding detections
@@ -169,6 +178,12 @@ def callMjdPrediction(inputFile, outputname, orbitFile, overwrite=True):
         else:
             trackToDf[trackids[x]] = {mjd: mjdDict}
     print('Dictionary time: ' + str(time.time() - time0))
+##############################################3
+    for name, size in sorted(((name, sys.getsizeof(value)) for name,value in locals().items()),
+                         key= lambda x: -x[1])[:10]:
+        print("{:>30}: {:>8}".format(name,sizeof_fmt(size)))
+##############################################TODO
+ 
     return trackToDf
 
 '''
@@ -187,6 +202,7 @@ def determineCandsInRadius(trips, trackMJDtoPos,
     counter = 0
     time0 = time.time()
     nextUp = 60
+    maxCands = 10
     for trip in trips:
         counter += 1
         if(time.time()-time0 > nextUp):
@@ -201,7 +217,7 @@ def determineCandsInRadius(trips, trackMJDtoPos,
             
             pos_err = trackMJDtoPos[trip.trackid][mjd]
             pos = [pos_err['RA'], pos_err['DEC']]
-            dists, candKeys = kdtree.query(pos, k=100, distance_upper_bound=radius)
+            dists, candKeys = kdtree.query(pos, k=maxCands, distance_upper_bound=radius)
             candidates = [] 
             for i in candKeys:
                 try:
@@ -209,12 +225,19 @@ def determineCandsInRadius(trips, trackMJDtoPos,
                 except IndexError:
                     pass
             #print(len(candidates))
-            if(len(candidates) > 100):
+            if(len(candidates) > maxCands):
                 print('Overflow: num=' + str(len(candidates)))
                 print('radius: ' + str(radius))
             #elif(len(candidates) > 1):
             #    print('not overflow: num=' + str(len(candidates)))
             trackDict[trip.trackid].extend(candidates)
+        #print(len(trackDict[trip.trackid]))
+##############################################3
+    for name, size in sorted(((name, sys.getsizeof(value)) for name,value in locals().items()),
+                         key= lambda x: -x[1])[:10]:
+        print("{:>30}: {:>8}".format(name,sizeof_fmt(size)))
+##############################################TODO
+ 
     return trackDict
 
 '''
@@ -247,7 +270,13 @@ def writeEllipses(trackToCandsDict, outfile):
             raList.append(cand.ra)
             decList.append(cand.dec)
             errList.append(cand.posErr*3600)
-    
+
+    print('writing to fits table')    
+##############################################3
+    for name, size in sorted(((name, sys.getsizeof(value)) for name,value in locals().items()),
+                         key= lambda x: -x[1])[:10]:
+        print("{:>30}: {:>8}".format(name,sizeof_fmt(size)))
+##############################################TODO
     outTable = Table([trackList, objidList, expList, raList, decList, errList], 
                     names=('ORBITID', 'OBJ_ID', 'EXPNUM', 'RA', 'DEC', 'SIGMA'), 
                     dtype = ('int64', 'i8', 'i4', 'f8', 'f8', 'f8'))
@@ -324,7 +353,8 @@ def find_candidates(trips, dets, orbitFile, interval=2, errSize=2,
     if(not os.path.isfile(mjdPred) or overwrite):
         print('\nwriting to file for prediction C function...')
         writeNites(trips, mjd_arr, interval, mjdPred)
-        
+#############################TODO
+    gc.collect()    
     if(not os.path.isfile(ellRequest) or overwrite):
         # call C function, get dictionary from trackid to mjd to positions and errors
         trackMjdPos = callMjdPrediction(mjdPred, predictfile, orbitFile, overwrite)
@@ -339,8 +369,9 @@ def find_candidates(trips, dets, orbitFile, interval=2, errSize=2,
             print([x.objid for x in trackToCandsDict[cands]])
         '''
         print('\nwriting to file for ellipse C function...')    
+        gc.collect()
         inputFile = writeEllipses(trackToCandsDict, ellRequest)
-    
+    gc.collect()
     #call C function, get dictionary from trackid to detections to their sigmas
     trackCandsSigma = callSigmaDet(ellRequest, proxFile, orbitFile, overwrite)
     grownTrips = []
