@@ -46,9 +46,14 @@ Note: I should check how much the object moves in a given time span
 
 def mjd_det_dict(dets, interval=20):
     mjd_dict = dict()
-    for det in dets:
-        mjd = (int(det.mjd) / interval) * interval
-        mjd_dict.setdefault(mjd, []).append(det)
+    for det in dets['mjd']:
+        mjd = int(dets['mjd'][det] / interval) * interval
+        mjd_dict.setdefault(mjd, []).append({'objid':det, 
+                        'ra':dets['ra'][det], 
+                        'dec':dets['dec'][det],
+                        'mjd':dets['mjd'][det],
+                        'err':dets['err'][det],
+                        'expnum':dets['expnum'][det]})
     return mjd_dict
 
 
@@ -56,7 +61,7 @@ def mjd_kd_tree_dict(mjd_det):
     kd_dict = dict()
     detlist_dict = dict()
     for key, value in mjd_det.iteritems():
-        kd_dict[key] = sp.cKDTree([(x.ra, x.dec) for x in value])
+        kd_dict[key] = sp.cKDTree([(x['ra'], x['dec']) for x in value])
         detlist_dict[kd_dict[key]] = value
     return kd_dict, detlist_dict
     
@@ -202,7 +207,7 @@ def determineCandsInRadius(trips, trackMJDtoPos,
     counter = 0
     time0 = time.time()
     nextUp = 60
-    maxCands = 10
+    maxCands = 30
     for trip in trips:
         counter += 1
         if(time.time()-time0 > nextUp):
@@ -267,11 +272,11 @@ def writeEllipses(trackToCandsDict, outfile):
             nextUp += 60
         for cand in candsList:
             trackList[counter] = (int(trackid))
-            objidList[counter] = (cand.objid)
-            expList[counter] = (cand.expnum)
-            raList[counter] = (cand.ra)
-            decList[counter] = (cand.dec)
-            errList[counter] = (cand.posErr*3600)
+            objidList[counter] = (cand['objid'])
+            expList[counter] = (cand['expnum'])
+            raList[counter] = (cand['ra'])
+            decList[counter] = (cand['dec'])
+            errList[counter] = (cand['err'])*3600
             counter+=1
     print('writing to fits table')    
 ##############################################3
@@ -406,6 +411,16 @@ def find_candidates(trips, dets, orbitFile, interval=2, errSize=2,
     print('done after ' + str(time.time()-time0) + ' seconds')
     return grownTrips
 
+def efficientWrap(csvFile):
+    print('reading csvFile')
+    df = pd.read_csv(csvFile)
+    print('converting')
+    df.rename(str.lower, axis='columns', inplace=True)
+    df.rename(columns={'snobjid':'objid', 'snfake_id':'fakeid',
+                    'ccdnum':'ccd', 'errawin_world': 'err'}, inplace=True)
+    df = df[['mjd', 'err', 'ra', 'dec', 'objid', 'expnum']]   
+    detDict = df.set_index('objid').to_dict()
+    return detDict
 
 def main():
     parser = argparse.ArgumentParser()
@@ -441,7 +456,9 @@ def main():
     #######
     '''
 
-    detections = LL.wrapDets(args.detections)
+   # detections = LL.wrapDets(args.detections)
+    detections = efficientWrap(args.detections)
+    print(detections.keys())
     print('loading and wrapping done after ' + str(time.time()-time0) + ' seconds')
     print('Finding candidates')
     t0 = time.time()
