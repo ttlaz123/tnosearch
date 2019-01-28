@@ -1,4 +1,5 @@
 import os
+import pdb
 import sys
 import gc
 try:
@@ -46,14 +47,15 @@ Note: I should check how much the object moves in a given time span
 
 def mjd_det_dict(dets, interval=20):
     mjd_dict = dict()
-    for det in dets['mjd']:
-        mjd = int(dets['mjd'][det] / interval) * interval
-        mjd_dict.setdefault(mjd, []).append({'objid':det, 
-                        'ra':dets['ra'][det], 
-                        'dec':dets['dec'][det],
-                        'mjd':dets['mjd'][det],
-                        'err':dets['err'][det],
-                        'expnum':dets['expnum'][det]})
+    for det in dets.itertuples():
+        mjd = int(det.mjd / interval) * interval
+        mjd_dict.setdefault(mjd, []).append({'objid':det.objid, 
+                        'ra':det.ra, 
+                        'dec':det.dec,
+                        'mjd':det.mjd,
+                        'err':det.err,
+                        'expnum':det.expnum})
+    pdb.set_trace()
     return mjd_dict
 
 
@@ -419,8 +421,7 @@ def efficientWrap(csvFile):
     df.rename(columns={'snobjid':'objid', 'snfake_id':'fakeid',
                     'ccdnum':'ccd', 'errawin_world': 'err'}, inplace=True)
     df = df[['mjd', 'err', 'ra', 'dec', 'objid', 'expnum']]   
-    detDict = df.set_index('objid').to_dict()
-    return detDict
+    return df
 
 def main():
     parser = argparse.ArgumentParser()
