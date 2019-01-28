@@ -247,30 +247,32 @@ output:
        --writes the file
 '''
 def writeEllipses(trackToCandsDict, outfile):
-    
-    trackList = []
-    objidList = []
-    expList = []
-    raList = []
-    decList = []
-    errList = []
+    count = sum(len(v) for v in trackToCandsDict.itervalues())
+    print(count)
+    trackList = np.empty(count)
+    objidList = np.empty(count)
+    expList = np.empty(count)
+    raList = np.empty(count)
+    decList = np.empty(count)
+    errList = np.empty(count)
     time0 = time.time()
     nextUp = 60
     counter = 0
+        
     for trackid in sorted(trackToCandsDict.iterkeys()):
         candsList = trackToCandsDict[trackid]
-        counter += 1
+
         if(time.time()-time0 > nextUp):
-            LL.printPercentage(counter, len(trackToCandsDict), time.time()-time0)
+            LL.printPercentage(counter, count, time.time()-time0)
             nextUp += 60
         for cand in candsList:
-            trackList.append(int(trackid))
-            objidList.append(cand.objid)
-            expList.append(cand.expnum)
-            raList.append(cand.ra)
-            decList.append(cand.dec)
-            errList.append(cand.posErr*3600)
-
+            trackList[counter] = (int(trackid))
+            objidList[counter] = (cand.objid)
+            expList[counter] = (cand.expnum)
+            raList[counter] = (cand.ra)
+            decList[counter] = (cand.dec)
+            errList[counter] = (cand.posErr*3600)
+            counter+=1
     print('writing to fits table')    
 ##############################################3
     for name, size in sorted(((name, sys.getsizeof(value)) for name,value in locals().items()),
@@ -438,6 +440,7 @@ def main():
     triplets = newList
     #######
     '''
+
     detections = LL.wrapDets(args.detections)
     print('loading and wrapping done after ' + str(time.time()-time0) + ' seconds')
     print('Finding candidates')
