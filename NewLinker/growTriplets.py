@@ -23,6 +23,7 @@ from astropy.table import unique
 import random
 import heapq
 from operator import itemgetter
+from collections import namedtuple
 
 import LinkerLib as LL
 from LinkerLib import Triplet, Detection
@@ -47,14 +48,12 @@ Note: I should check how much the object moves in a given time span
 
 def mjd_det_dict(dets, interval=20):
     mjd_dict = dict()
+    Det = namedtuple('Det', 'objid ra dec mjd expnum err')
     for det in dets.itertuples():
         mjd = int(det.mjd / interval) * interval
-        mjd_dict.setdefault(mjd, []).append({'objid':det.objid, 
-                        'ra':det.ra, 
-                        'dec':det.dec,
-                        'mjd':det.mjd,
-                        'err':det.err,
-                        'expnum':det.expnum})
+        d = Det(objid=det.objid, ra=det.ra, dec=det.dec, 
+                    mjd=det.mjd,err=det.err,expnum=det.expnum)
+        mjd_dict.setdefault(mjd, []).append(d)
     pdb.set_trace()
     return mjd_dict
 
@@ -63,7 +62,7 @@ def mjd_kd_tree_dict(mjd_det):
     kd_dict = dict()
     detlist_dict = dict()
     for key, value in mjd_det.iteritems():
-        kd_dict[key] = sp.cKDTree([(x['ra'], x['dec']) for x in value])
+        kd_dict[key] = sp.cKDTree([(x.ra, x.dec) for x in value])
         detlist_dict[kd_dict[key]] = value
     return kd_dict, detlist_dict
     
@@ -274,11 +273,11 @@ def writeEllipses(trackToCandsDict, outfile):
             nextUp += 60
         for cand in candsList:
             trackList[counter] = (int(trackid))
-            objidList[counter] = (cand['objid'])
-            expList[counter] = (cand['expnum'])
-            raList[counter] = (cand['ra'])
-            decList[counter] = (cand['dec'])
-            errList[counter] = (cand['err'])*3600
+            objidList[counter] = (cand.objid)
+            expList[counter] = (cand.expnum)
+            raList[counter] = (cand.ra)
+            decList[counter] = (cand.dec)
+            errList[counter] = (cand.err)*3600
             counter+=1
     print('writing to fits table')    
 ##############################################3
