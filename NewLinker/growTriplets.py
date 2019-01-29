@@ -62,7 +62,8 @@ def mjd_kd_tree_dict(mjd_det):
     kd_dict = dict()
     detlist_dict = dict()
     for key, value in mjd_det.iteritems():
-        kd_dict[key] = sp.cKDTree([(x.ra, x.dec) for x in value])
+        kd_dict[key] = sp.cKDTree([(np.cos(np.radians(x.dec))*x.ra,
+                                                x.dec) for x in value])
         detlist_dict[kd_dict[key]] = value
     return kd_dict, detlist_dict
     
@@ -85,14 +86,18 @@ def search_radius(trackMJDtoPos, trackid, mjd, interval=2, errSize=3):
     pos2 = trackMJDtoPos[trackid][mjd+interval]
     pos3 = trackMJDtoPos[trackid][mjd-interval]
     #distance from the two 
-    dist2 = np.sqrt((pos2.RA-posC.RA)**2 + (pos2.DEC-posC.DEC)**2)
-    dist3 = np.sqrt((pos3.RA-posC.RA)**2 + (pos3.DEC-posC.DEC)**2) 
+    dist2 = np.sqrt((np.cos(np.radians(posC.DEC))*(pos2.RA-posC.RA))**2 
+                        + (pos2.DEC-posC.DEC)**2)
+    dist3 = np.sqrt((np.cos(np.radians(posC.DEC))*(pos3.RA-posC.RA))**2 
+                        + (pos3.DEC-posC.DEC)**2) 
     dist2 += pos2.ERR*errSize/3600 
     dist3 += pos3.ERR*errSize/3600
 
     return max(dist2, dist3)
 
-
+'''
+DEPRECATED
+'''
 def withinEllipse(erra, errb, pa, delta_ra, delta_dec, errSize=2):
     erra /= 3600
     errb /= 3600
@@ -222,7 +227,8 @@ def determineCandsInRadius(trips, trackMJDtoPos,
             dets = kd_tree_detlist[kdtree]
             
             pos_err = trackMJDtoPos[trip.trackid][mjd]
-            pos = [pos_err.RA, pos_err.DEC]
+            pos = [np.cos(np.radians(pos_err.DEC))*pos_err.RA, 
+                        pos_err.DEC]
             dists, candKeys = kdtree.query(pos, k=maxCands, distance_upper_bound=radius)
             candidates = [] 
             for i in candKeys:
