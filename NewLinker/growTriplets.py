@@ -54,7 +54,7 @@ def mjd_det_dict(dets, interval=20):
         d = Det(objid=det.objid, ra=det.ra, dec=det.dec, 
                     mjd=det.mjd,err=det.err,expnum=det.expnum)
         mjd_dict.setdefault(mjd, []).append(d)
-    pdb.set_trace()
+    #pdb.set_trace()
     return mjd_dict
 
 
@@ -289,7 +289,7 @@ def writeEllipses(trackToCandsDict, outfile):
             decList[counter] = (cand.dec)
             errList[counter] = (cand.err)*3600
             counter+=1
-    pdb.set_trace()
+    #pdb.set_trace()
     print('writing to fits table')    
 ##############################################3
     for name, size in sorted(((name, sys.getsizeof(value)) for name,value in locals().items()),
@@ -299,7 +299,7 @@ def writeEllipses(trackToCandsDict, outfile):
     outTable = Table([trackList, objidList, expList, raList, decList, errList], 
                     names=('ORBITID', 'OBJ_ID', 'EXPNUM', 'RA', 'DEC', 'SIGMA'), 
                     dtype = ('int64', 'i8', 'i4', 'f8', 'f8', 'f8'))
-    pdb.set_trace()
+    #pdb.set_trace()
     del trackList
     del objidList
     del expList
@@ -307,12 +307,12 @@ def writeEllipses(trackToCandsDict, outfile):
     del decList
     del errList
     gc.collect()
-    pdb.set_trace()
+#    pdb.set_trace()
 
     print('writing to: ' + str(outfile))
     print('total time: ' + str(time.time()-time0))
     outTable.write(outfile, format = "fits", overwrite=True)
-    pdb.set_trace()
+ #   pdb.set_trace()
     return outfile
 
 '''
