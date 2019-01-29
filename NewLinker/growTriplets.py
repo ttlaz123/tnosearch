@@ -69,9 +69,7 @@ def mjd_kd_tree_dict(mjd_det):
 
 
 def mjd_generator(mjd_det):
-    arr = []
-    for mjd in mjd_det:
-        arr.append(mjd)
+    arr = mjd_det.keys()
     return np.array(arr)
 
 
@@ -87,10 +85,10 @@ def search_radius(trackMJDtoPos, trackid, mjd, interval=2, errSize=3):
     pos2 = trackMJDtoPos[trackid][mjd+interval]
     pos3 = trackMJDtoPos[trackid][mjd-interval]
     #distance from the two 
-    dist2 = np.sqrt((pos2['RA']-posC['RA'])**2 + (pos2['DEC']-posC['DEC'])**2)
-    dist3 = np.sqrt((pos3['RA']-posC['RA'])**2 + (pos3['DEC']-posC['DEC'])**2) 
-    dist2 += pos2['ERR']*errSize/3600 
-    dist3 += pos3['ERR']*errSize/3600
+    dist2 = np.sqrt((pos2.RA-posC.RA)**2 + (pos2.DEC-posC.DEC)**2)
+    dist3 = np.sqrt((pos3.RA-posC.RA)**2 + (pos3.DEC-posC.DEC)**2) 
+    dist2 += pos2.ERR*errSize/3600 
+    dist3 += pos3.ERR*errSize/3600
 
     return max(dist2, dist3)
 
@@ -170,7 +168,9 @@ def callMjdPrediction(inputFile, outputname, orbitFile, overwrite=True):
     decs = data['DEC'].tolist()
     errs = data['ERROR_A'].tolist()
     nextUp = 60
-    for x in range(len(trackids)):
+    
+    MJD = namedtuple('MJD', 'RA DEC ERR')
+    for x in xrange(len(trackids)):
         if(time.time() - time0 > nextUp):
             LL.printPercentage(x, len(trackids), time.time()-time0)
             nextUp+=60
@@ -178,7 +178,7 @@ def callMjdPrediction(inputFile, outputname, orbitFile, overwrite=True):
         dec = decs[x]
         err = errs[x]
         mjd = mjds[x]
-        mjdDict = {'RA': ra, 'DEC': dec, 'ERR': err}
+        mjdDict = MJD(RA=ra, DEC=dec, ERR=err)
         if(trackids[x] in trackToDf):
             trackToDf[trackids[x]][mjd] = mjdDict
         else:
@@ -208,7 +208,7 @@ def determineCandsInRadius(trips, trackMJDtoPos,
     counter = 0
     time0 = time.time()
     nextUp = 60
-    maxCands = 30
+    maxCands = 20
     for trip in trips:
         counter += 1
         if(time.time()-time0 > nextUp):
@@ -222,7 +222,7 @@ def determineCandsInRadius(trips, trackMJDtoPos,
             dets = kd_tree_detlist[kdtree]
             
             pos_err = trackMJDtoPos[trip.trackid][mjd]
-            pos = [pos_err['RA'], pos_err['DEC']]
+            pos = [pos_err.RA, pos_err.DEC]
             dists, candKeys = kdtree.query(pos, k=maxCands, distance_upper_bound=radius)
             candidates = [] 
             for i in candKeys:
@@ -279,6 +279,7 @@ def writeEllipses(trackToCandsDict, outfile):
             decList[counter] = (cand.dec)
             errList[counter] = (cand.err)*3600
             counter+=1
+    pdb.set_trace()
     print('writing to fits table')    
 ##############################################3
     for name, size in sorted(((name, sys.getsizeof(value)) for name,value in locals().items()),
@@ -288,9 +289,20 @@ def writeEllipses(trackToCandsDict, outfile):
     outTable = Table([trackList, objidList, expList, raList, decList, errList], 
                     names=('ORBITID', 'OBJ_ID', 'EXPNUM', 'RA', 'DEC', 'SIGMA'), 
                     dtype = ('int64', 'i8', 'i4', 'f8', 'f8', 'f8'))
+    pdb.set_trace()
+    del trackList
+    del objidList
+    del expList
+    del raList
+    del decList
+    del errList
+    gc.collect()
+    pdb.set_trace()
+
     print('writing to: ' + str(outfile))
     print('total time: ' + str(time.time()-time0))
     outTable.write(outfile, format = "fits", overwrite=True)
+    pdb.set_trace()
     return outfile
 
 '''
@@ -320,7 +332,7 @@ def callSigmaDet(inputFile, outputname, orbitFile, overwrite=True):
     objids = data['OBJ_ID']
     chisq = data['CHISQ']
     nextUp = 60
-    for x in range(len(trackids)):
+    for x in xrange(len(trackids)):
         if(time.time()-time0 > nextUp):
             LL.printPercentage(x, len(objids), time.time()-time0)
             nextUp+=60
