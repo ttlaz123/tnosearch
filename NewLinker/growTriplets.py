@@ -149,8 +149,7 @@ input: --input file to C code for orbit position predictor
        --orbital parameter fits file
 output: --dictionary from trackid and mjd to ra, dec, and error
 '''
-def inp.cos(np.radians(pos_err.DEC))*pos_err.RA, 
-                        pos_err.DEC]callMjdPrediction(inputFile, outputname, orbitFile, overwrite=True):
+def callMjdPrediction(inputFile, outputname, orbitFile, overwrite=True):
     if(not os.path.isfile(outputname) or overwrite):
         cmd = 'BulkPredict -observationFile=' + (inputFile)
         cmd = cmd + ' -orbitFile=' + orbitFile
