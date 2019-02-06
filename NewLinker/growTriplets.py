@@ -230,9 +230,6 @@ def determineCandsInRadius(trips, trackMJDtoPos,
             pos_err = trackMJDtoPos[trip.trackid][mjd]
             pos = [np.cos(np.radians(pos_err.DEC))*pos_err.RA, 
                         pos_err.DEC]
-            print([pos_err.RA, 
-                        pos_err.DEC])
-            print(pos)
             dists, candKeys = kdtree.query(pos, k=maxCands, distance_upper_bound=radius)
             candidates = [] 
             for i in candKeys:
