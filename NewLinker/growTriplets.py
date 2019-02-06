@@ -36,6 +36,26 @@ def sizeof_fmt(num, suffix='B'):
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
+def radec_to_gnomonic(ra, dec, ra_0, dec_0):
+    '''
+    Converts RA, DEC to x,y in gnomonic coordinates using pixmappy so we can use an Euclidean metric for the FoF
+    '''
+    if(ra>180):
+        ra = ra - 360
+    
+    c_dec_0 = np.cos(np.pi*dec_0/180.)
+    s_dec_0 = np.sin(np.pi*dec_0/180.)
+    c_dec   = np.cos(np.pi*dec/180.)
+    s_dec   = np.sin(np.pi*dec/180.)
+    c_ra    = np.cos(np.pi*(ra-ra_0)/180.)
+    s_ra    = np.sin(np.pi*(ra-ra_0)/180.)
+
+    cos_c = s_dec_0*s_dec + c_dec_0*c_dec*c_ra
+
+    x = c_dec*s_ra/cos_c
+    y = (c_dec_0*s_dec - s_dec_0*c_dec*c_ra)/cos_c
+    return 180*x/np.pi, 180*y/np.pi
+
 '''
 1. Make a dictionary that maps MJD range to list of corresponding detections
 2. Make a dictionary that maps MJD range to KD tree for the detections from 1
@@ -58,12 +78,12 @@ def mjd_det_dict(dets, interval=20):
     return mjd_dict
 
 
-def mjd_kd_tree_dict(mjd_det):
+def mjd_kd_tree_dict(mjd_det, ra_0, dec_0):
     kd_dict = dict()
     detlist_dict = dict()
     for key, value in mjd_det.iteritems():
-        kd_dict[key] = sp.cKDTree([(np.cos(np.radians(x.dec))*x.ra,
-                                                x.dec) for x in value])
+        arr = [radec_to_gnomonic(x.ra, x.dec, ra_0, dec_0) for x in value]
+        kd_dict[key] = sp.cKDTree(arr)
         detlist_dict[kd_dict[key]] = value
     return kd_dict, detlist_dict
     
@@ -73,7 +93,16 @@ def mjd_generator(mjd_det):
     arr = mjd_det.keys()
     return np.array(arr)
 
+def toGenomic(trackDict, ra0, dec0):
+    for key in trackDict.keys():
+        for mjd in trackDict[key].keys():
+            item = radec_to_gnomonic(trackDict[key][mjd].RA, 
+                                    trackDict[key][mjd].DEC, ra0, dec0)
+            item = list(item)
+            item.append(trackDict[key][mjd].ERR) 
+            trackDict[key][mjd] = item
 
+    return trackDict
 '''
 input: --trackid to mjd to position and error dictionary
        --trackid of triplet
@@ -86,12 +115,12 @@ def search_radius(trackMJDtoPos, trackid, mjd, interval=2, errSize=3):
     pos2 = trackMJDtoPos[trackid][mjd+interval]
     pos3 = trackMJDtoPos[trackid][mjd-interval]
     #distance from the two 
-    dist2 = np.sqrt((np.cos(np.radians(posC.DEC))*(pos2.RA-posC.RA))**2 
-                        + (pos2.DEC-posC.DEC)**2)
-    dist3 = np.sqrt((np.cos(np.radians(posC.DEC))*(pos3.RA-posC.RA))**2 
-                        + (pos3.DEC-posC.DEC)**2) 
-    dist2 += pos2.ERR*errSize/3600 
-    dist3 += pos3.ERR*errSize/3600
+    dist2 = np.sqrt((pos2[0]-posC[0])**2 
+                        + (pos2[1]-posC[1])**2)
+    dist3 = np.sqrt((pos3[0]-posC[0])**2 
+                        + (pos3[1]-posC[1])**2) 
+    dist2 += pos2[2]*errSize/3600 
+    dist3 += pos3[2]*errSize/3600
 
     return max(dist2, dist3)
 
@@ -208,7 +237,10 @@ output: --a dictionary from trackid to a list of detections
 def determineCandsInRadius(trips, trackMJDtoPos, 
             mjd_det, mjd_arr, interval=2, errSize=3):
     print('making kd_trees')
-    mjd_kd_tree, kd_tree_detlist = mjd_kd_tree_dict(mjd_det)
+    ra_0 = trips[0].dets[0].ra
+    dec_0 = trips[0].dets[0].dec
+    trackMJDtoPos = toGenomic(trackMJDtoPos, ra_0, dec_0)
+    mjd_kd_tree, kd_tree_detlist = mjd_kd_tree_dict(mjd_det, ra_0, dec_0)
     trackDict = {}
     counter = 0
     time0 = time.time()
@@ -228,8 +260,8 @@ def determineCandsInRadius(trips, trackMJDtoPos,
             dets = kd_tree_detlist[kdtree]
             
             pos_err = trackMJDtoPos[trip.trackid][mjd]
-            pos = [np.cos(np.radians(pos_err.DEC))*pos_err.RA, 
-                        pos_err.DEC]
+            pos = [pos_err[0], 
+                        pos_err[1]]
             dists, candKeys = kdtree.query(pos, k=maxCands, distance_upper_bound=radius)
             candidates = [] 
             for i in candKeys:
