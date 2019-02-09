@@ -841,7 +841,7 @@ def wrapDets(csvFile, lookAhead=0, printP=False, efficient=False):
     print('wrapping ' + str(size) + ' objects')
     update = 60
     Det = namedtuple('det', 'ra dec mjd mag objid ' +
-                        'expnum ccd band fakeid posErr')
+                        'expnum ccd band fakeid posErr lookAhead')
 
     for y in range(size):
         if(time.time() - startT > update and printP):
@@ -852,7 +852,7 @@ def wrapDets(csvFile, lookAhead=0, printP=False, efficient=False):
                         mag=float(magList[y]), objid=float(objidList[y]), 
                         expnum=float(expnumList[y]),
                         ccd=float(ccdList[y]), band=bandList[y], 
-                        fakeid=float(fakeidList[y]), posErr=float(posErrList[y]))
+                        fakeid=float(fakeidList[y]), posErr=float(posErrList[y]), lookAhead=-1)
         else:
             det = Detection(float(raList[y]), float(decList[y]), float(mjdList[y]),
                     float(fluxList[y]), int(objidList[y]),

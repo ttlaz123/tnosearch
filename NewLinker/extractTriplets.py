@@ -324,7 +324,10 @@ def simulIterTrips(tripList, chiThresh, chunkname, savename):
             newdets =[]
             newdets = [x for x in dets if x not in trip.dets]
             for det in newdets:
-                det.lookAhead = -1
+                try:
+                    det.lookAhead = -1
+                except AttributeError:
+                    pass
                 trip.dets.append(det)
             trip.cands = [x for x in trip.cands if DET_DICT[x] not in trip.dets]
             #print(trip)
