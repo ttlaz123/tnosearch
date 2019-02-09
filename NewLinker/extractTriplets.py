@@ -8,6 +8,7 @@ import pickle
 import time
 import pandas as pd 
 from astropy.table import Table
+from collections import namedtuple
 
 from LinkerLib import Detection
 from LinkerLib import Triplet
@@ -383,7 +384,7 @@ def main():
     tripList = numcombs(tripList)
     
     global DET_DICT
-    DET_DICT = LL.objidDictionary(args.csvFile)
+    DET_DICT = LL.objidDictionary(args.csvFile, efficient=True)
 
     chiThresh = 10
     if(args.chiThres):
