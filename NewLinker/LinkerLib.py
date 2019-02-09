@@ -5,6 +5,7 @@ sys.path.insert(0, tnopath)
 
 import numpy as np
 import pandas as pd
+from collections import namedtuple
 
 from datetime import datetime
 import time
@@ -767,13 +768,13 @@ def expDictionary(dets):
 # input: a pandas dataframe with the necessary headers for the Detection object
 #           false: returns dictionary, true: saves to pickle file
 # output: a dictionary that goes from objid to Detection object
-def objidDictionary(csvFile, lookAhead=0, printP=False, toPickle=False):
+def objidDictionary(csvFile, lookAhead=0, printP=False, toPickle=False, efficient=False):
     cand = False
     if(lookAhead == -1):
         cand = True
         lookAhead = 0
     print('start wrap')
-    detList = wrapDets(csvFile, lookAhead, printP)
+    detList = wrapDets(csvFile, lookAhead, printP, efficient)
     detDict = {}
     size = len(detList)
     print('\nadding ' + str(size) +' objects to dictionary') 
@@ -799,12 +800,12 @@ def objidDictionary(csvFile, lookAhead=0, printP=False, toPickle=False):
         return detDict
 
 #takes a csvfile of detections and wraps them with Detection class
-def wrapDets(csvFile, lookAhead=0, printP=False):
+def wrapDets(csvFile, lookAhead=0, printP=False, efficient=False):
     df = pd.read_csv(csvFile)
     df.rename(str.lower, axis='columns', inplace=True)
     df.rename(columns={'snobjid': 'objid',
             'snfake_id': 'fakeid', 'ccdnum': 'ccd'}, inplace=True)
-            
+
     size = len(df['objid'])
     raList = df['ra'].tolist()
     decList = df['dec'].tolist()
@@ -839,18 +840,28 @@ def wrapDets(csvFile, lookAhead=0, printP=False):
     startT = time.time()
     print('wrapping ' + str(size) + ' objects')
     update = 60
+    Det = namedtuple('det', 'ra dec mjd mag objid ' +
+                        'expnum ccd band fakeid posErr lookAhead')
+
     for y in range(size):
         if(time.time() - startT > update and printP):
             printPercentage(y,size, time.time()-startT)
             update += 60
-        det = Detection(float(raList[y]), float(decList[y]), float(mjdList[y]),
-        float(fluxList[y]), int(objidList[y]),
-        int(expnumList[y]), int(ccdList[y]), bandList[y],
-                lookAhead, int(fakeidList[y])) 
-        det.setMagErr(int(fluxErrList[y]))
-        det.posErr = float(posErrList[y])
-        if(det.mag > 40):
-            det.mag = float(magList[y])
+        if(efficient):
+            det = Det(ra=float(raList[y]), dec=float(decList[y]), mjd=float(mjdList[y]),
+                        mag=float(magList[y]), objid=float(objidList[y]), 
+                        expnum=float(expnumList[y]),
+                        ccd=float(ccdList[y]), band=bandList[y], 
+                        fakeid=float(fakeidList[y]), posErr=float(posErrList[y]), lookAhead=-1)
+        else:
+            det = Detection(float(raList[y]), float(decList[y]), float(mjdList[y]),
+                    float(fluxList[y]), int(objidList[y]),
+                    int(expnumList[y]), int(ccdList[y]), bandList[y],
+                    lookAhead, int(fakeidList[y])) 
+            det.setMagErr(int(fluxErrList[y]))
+            det.posErr = float(posErrList[y])
+            if(det.mag > 40):
+                det.mag = float(magList[y])
         detlist.append(det)
     return detlist
 
