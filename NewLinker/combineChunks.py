@@ -3,6 +3,7 @@ import os
 tnopath = os.environ['TNO_PATH']
 sys.path.insert(0, tnopath)
 from LinkerLib import Triplet
+from LinkerLib import Detection
 from LinkerLib import writeTriplets
 from LinkerLib import pickleTriplets
 from LinkerLib import printPercentage
@@ -41,7 +42,7 @@ def mergeChunks(folder, prefix1='small', prefix2='large'):
         LL.pickleTriplets(largeTrips, 'chunkMerged+' + prefix2 + '+' + savename+'.pickle')
         LL.writeTriplets(largeTrips, 'chunkMerged+' + prefix2 + '+' + savename + '.txt')
 
-def mergeFiles(folder):
+def mergeFiles(folder, detDict):
     files = os.listdir(folder)
     trips = []
     savename = files[0].split('+')[-1].split('.')[0]
@@ -55,6 +56,11 @@ def mergeFiles(folder):
             with open(folder+f, 'rb') as name:
                 try:
                     triplets = pickle.load(name)
+                    for trip in triplets:
+                        for ind, det in enumerate(trip.dets):
+                            if(not isinstance(det, Detection)):
+                                det = detDict[det.objid]
+                                trip.dets[ind] = det
                     trips+=(triplets)
                 except EOFError:
                     print("file error: " + str(name))
@@ -71,10 +77,14 @@ def mergeFiles(folder):
 def main():
     args = argparse.ArgumentParser()
     args.add_argument('-f', '--folder', help='folder of chunks')
+    args.add_argument('-d', '--detections', help='file with detections')
     args = args.parse_args()
+    
+    detDict = LL.objidDictionary(args.detections)
+
     if(args.folder):
         print('running on ' + args.folder)
-        mergeFiles(args.folder)
+        mergeFiles(args.folder, detDict)
 
 if __name__=='__main__':
     main()
