@@ -53,8 +53,12 @@ def mergeFiles(folder):
         counter += 1
         if(f.endswith('.pickle')):
             with open(folder+f, 'rb') as name:
-                triplets = pickle.load(name)
-                trips+=(triplets)
+                try:
+                    triplets = pickle.load(name)
+                    trips+=(triplets)
+                except EOFError:
+                    print("file error: " + str(name))
+                
                 '''
                 for trip in triplets:
                     if(trip.realLength()>3):
