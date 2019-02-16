@@ -21,6 +21,8 @@ from orbfitScript import degToHour, degToDMS
 import GammaTPlotwStatTNOExFaster as gts
 from Orbit import Orbit
 
+Det = namedtuple('Det', 'ra dec mjd mag objid ' +
+                        'expnum ccd band fakeid posErr lookAhead')
 
 class Region:
     # fields include the range for RA / Dec and list of detections
@@ -589,12 +591,14 @@ class Triplet:
         return not (sorted(selfIDs) == sorted(otherIDs))
 
     def __str__(self):
-        if(isinstance(self.dets[0], Detection)):
+        if(all(isinstance(x, Detection) for x in self.dets)):
             return self.toStr()
         else:
-            return ('TrackID: ' + str(self.trackid) + 
-                    '\nDet: ' + str(self.dets) + 
-                    '\nCands: ' + str(self.cands))
+            s = 'TrackID: ' + str(self.trackid) + '\nDet: '
+            for d in self.dets:
+                s+= '\n' + str(d)
+            s+= '\nCands: ' + str(self.cands)
+            return s 
 
     def toStr(self):
         s = '\n *****Triplet*****\n'
@@ -840,9 +844,7 @@ def wrapDets(csvFile, lookAhead=0, printP=False, efficient=False):
     startT = time.time()
     print('wrapping ' + str(size) + ' objects')
     update = 60
-    Det = namedtuple('det', 'ra dec mjd mag objid ' +
-                        'expnum ccd band fakeid posErr lookAhead')
-
+    
     for y in range(size):
         if(time.time() - startT > update and printP):
             printPercentage(y,size, time.time()-startT)

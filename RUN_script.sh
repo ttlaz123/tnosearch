@@ -11,9 +11,9 @@ source /global/common/software/dessn/edison/destnos/setup_dg.sh
 #module load gcc/7.3.0
 #module swap gcc/4.9.3 gcc/7.3.0
 #TNO_DIR=/global/project/projectdirs/dessn/diffim/TNOsearch/
-#FILES=/scratch2/scratchdirs/liuto/
-TNO_DIR=/global/common/software/dessn/edison/tno/
-FILES=/scratch3/scratchdirs/masao/tno/
+FILES=/scratch2/scratchdirs/liuto/tnosearch/
+TNO_DIR=${FILES}
+#FILES=/scratch3/scratchdirs/masao/tno/
 FILES_DIR=${FILES}Data/
 SCRIPTS_DIR=${TNO_DIR}NewLinker/
 #detDir=${TNO_DIR}TTcsvDetectionFiles/
@@ -189,7 +189,7 @@ then
     pyScript=combineChunks.py
     pythonPath=${SCRIPTS_DIR}${pyScript}
 
-    cmd="${pythonPath} -f ${extractChunkDir}"
+    cmd="${pythonPath} -f ${extractChunkDir} -d ${growFile}"
     toDir=$finalDir
 
 elif [ $script == 'merge' ] 
