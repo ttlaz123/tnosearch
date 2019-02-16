@@ -323,7 +323,6 @@ def simulIterTrips(tripList, chiThresh, chunkname, savename):
             dets = trackDict[orbID]
             newdets =[]
             newdets = [x for x in dets if x not in trip.dets]
-            print(newdets)
             for det in newdets:
                 try:
                     det.lookAhead = -1
