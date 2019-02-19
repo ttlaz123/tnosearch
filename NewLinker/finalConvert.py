@@ -7,6 +7,7 @@ import LinkerLib as LL
 from LinkerLib import Triplet
 from LinkerLib import Detection
 import numpy as np
+import math
 from astropy.table import Table
 import time
 import pickle
@@ -55,18 +56,28 @@ def writeFitsTable(tripList, orbit=None):
             topList.append(trip.elements['top'])
             aopList.append(trip.elements['aop'])
         except TypeError:
-            aList.append(-1)
-            eList.append(-1)
-            iList.append(-1)
-            lanList.append(-1)
-            topList.append(-1)
-            aopList.append(-1)
+            aList.append(-999)
+            eList.append(-999)
+            iList.append(-999)
+            lanList.append(-999)
+            topList.append(-999)
+            aopList.append(-999)
         chiList.append(trip.chiSq)
         numList.append(len(trip.dets))
         uniList.append(trip.realLength())
-        abgList.append(trip.abg)
-        abgCov.append(trip.cov)
-        aeiCov.append(trip.aeiCov)
+        abg = trip.abg
+        abgcov = trip.cov
+        aeicov = trip.aeiCov
+        if(not isinstance(abg, list)):
+            abg = [0,0,0,0,0,0]
+        if(not isinstance(abgcov, list)):
+            abgcov = [0]*36
+        if(not isinstance(aeicov, list)):
+            aeicov = [0]*36
+        abgList.append(abg)
+        abgCov.append(abgcov)
+        aeiCov.append(aeicov)
+        #print(aeiCov)
         for det in trip.dets:
             detTrackList.append(trackid)
             objidList.append(det.objid)
@@ -81,11 +92,13 @@ def writeFitsTable(tripList, orbit=None):
     abgList = np.array(abgList)
     abgCov = np.array(abgCov)
     aeiCov = np.array(aeiCov)
-    table1 = Table((trackList, aList, eList, iList, 
+    #print(abgList)
+    #table1 = Table([trackList, aList, abgList], names=('orbitid','aList', 'abgCov'))
+    table1 = Table([trackList, aList, eList, iList, 
                         lanList,topList,aopList, 
-                        chiList, numList, uniList, abgList, abgCov, aeiCov),
+                        chiList, numList, uniList, abgList, abgCov],#, aeiCov],
                 names=('orbitid', 'a', 'e', 'i', 'lan', 'top', 'aop',
-                            'chisq', 'num', 'nunique', 'abg', 'abgcov', 'aeicov'))
+                            'chisq', 'num', 'nunique', 'abg', 'abgcov'))#, 'aeicov'))
     table2 = Table([detTrackList, objidList, raList, decList, 
                         magList,mjdList,expList, 
                         bandList, errList],
@@ -95,6 +108,8 @@ def writeFitsTable(tripList, orbit=None):
                 dtype=('int64', 'int64', 'f8', 'f8', 
                         'f8', 'f8', 'i8',
                             'a1', 'f8'))
+    #print(table1)
+    #print(table2)
     orbit = Table.read(orbit)
     table1.meta = orbit.meta
     return table1, table2
@@ -127,8 +142,10 @@ def main():
     print(args.orbit) 
     orbs, dets = writeFitsTable(triplets, args.orbit)
     print('saving tables')
-    orbs.write(outname1, format='fits', overwrite=True)
     dets.write(outname2, format='fits', overwrite=True)
+    print('next')
+    orbs.write(outname1, format='fits', overwrite=True)
+    
 
     print('done')
 if __name__=='__main__':

@@ -636,6 +636,8 @@ def saveElements(tripList, orbitTable):
     flags = orbitTable['FLAGS'].tolist()
     abg = orbitTable['ABG'].tolist()
     cov = orbitTable['ABGCOV'].tolist()
+    aeiCov = orbitTable['ELCOV'].tolist()
+
     newList = []
     trackDict = {}
     for trip in tripList:
@@ -655,7 +657,7 @@ def saveElements(tripList, orbitTable):
             trip.chiSq = chisqs[x]
             els = elements[x]
             ers = errs[x]
-            trip.aeiCov =orbitTable['ELCOV'].tolist()
+            trip.aeiCov = aeiCov[x]           
             trip.elements = {'a': els[0], 'e': els[1], 'i': els[2],
                             'lan': els[3], 'top': els[5], 'aop': els[4]}
             trip.abg = abg[x]

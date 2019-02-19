@@ -148,6 +148,7 @@ def main():
         print('done loading')
     saveName = args.triplets.split('+')[-1].split('.')[0]
     chunkName = args.triplets.split('/')[-1].split('+')[0]
+
     if(args.suppress):
         lets = removeBadChisq(triplets)
     else:
