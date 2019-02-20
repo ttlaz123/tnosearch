@@ -107,8 +107,8 @@ def generate_predictions(trip, mjd1, mjd2, orbfile):
     coords =[ ]
     for trackid in trackToDf.iterkeys():
         for mjd in sorted(trackToDf[trackid].iterkeys()):
-            ra = trackToDf[trackid][mjd]['RA']
-            dec = trackToDf[trackid][mjd]['DEC']
+            ra = trackToDf[trackid][mjd].RA
+            dec = trackToDf[trackid][mjd].DEC
             coords.append((ra,dec))
     return coords
 
