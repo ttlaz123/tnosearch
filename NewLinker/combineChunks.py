@@ -79,9 +79,12 @@ def main():
     args.add_argument('-f', '--folder', help='folder of chunks')
     args.add_argument('-d', '--detections', help='file with detections')
     args = args.parse_args()
+    try: 
+        detDict = LL.objidDictionary(args.detections)
     
-    detDict = LL.objidDictionary(args.detections)
-
+    except ValueError:
+        print('dictionary not made')
+        detDict = None
     if(args.folder):
         print('running on ' + args.folder)
         mergeFiles(args.folder, detDict)
