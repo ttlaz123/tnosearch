@@ -136,7 +136,7 @@ def main():
     args.add_argument('triplets',
                         help='path to pickle file; file has format ' + 
                         'chunk###+SNOBS_SEASON###_ML0#.pickle')
-    args.add_argument('detFile', help='path to csv file with detections')
+    args.add_argument('-d', '--detFile', help='path to csv file with detections')
     args.add_argument('-o', '--orbit', action='store_true', help='produce orbitfile only')
     args.add_argument('-x', '--suppress', action='store_true', help='do not run fitter')
     args = args.parse_args()
@@ -152,7 +152,10 @@ def main():
     if(args.suppress):
         lets = removeBadChisq(triplets)
     else:
-        detDict = LL.objidDictionary(args.detFile)
+        if(args.detFile is None):
+            detDict = {}
+        else:
+            detDict = LL.objidDictionary(args.detFile)
 
         try:
             triplets = list(set(triplets)) 

@@ -579,9 +579,16 @@ class Triplet:
             return False
         if other == None:
             return False
-        selfIDs = tuple([x.objid for x in self.dets]) 
-        otherIDs = tuple([x.objid for x in other.dets]) 
-        return sorted(selfIDs) == sorted(otherIDs)
+        if(isinstance(trip.dets[0], Detection):
+            selfIDs = tuple([x.objid for x in self.dets]) 
+            otherIDs = tuple([x.objid for x in other.dets]) 
+            return sorted(selfIDs) == sorted(otherIDs)
+        elif(isinstance(trip.dets[0], int):
+            selfIDs = tuple([x for x in self.dets])
+            otherIDs = tuple([x for x in other.dets])
+            return sorted(selfIDs) == sorted(otherIDs)
+        else:
+            return False
 
     def __ne__(self, other):
         if other == None:

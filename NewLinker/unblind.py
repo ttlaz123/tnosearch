@@ -7,7 +7,7 @@ import argparse
 import pickle
 from astropy.table import Table
 import pandas as pd
-
+from LinkerLib import Triplet
 from LinkerLib import writeTriplets
 from LinkerLib import pickleTriplets
 import LinkerLib as LL
@@ -52,7 +52,8 @@ def unblindDetections(df, fakeDict):
     return df
 
 def makeFakes(csvFile):
-    detList = LL.wrapDetections(csvFile) 
+    seasonInfo = csvFile.split('+')[-1].split('.')[0]
+    detList = LL.wrapDets(csvFile) 
     tripDict = {}
     for det in detList:
         if(det.fakeid == -1):
@@ -80,10 +81,11 @@ def main():
     
     if(args.truths):
         makeFakes(args.truths)
+        return
 
     if(args.detections):
         fakeDict = makeFakeDict(args.fakes)
-        for patch in range(33, 100):
+        for patch in range(32, 100):
             print('unblinding patch: ' + str(patch))
             unblindPatch(fakeDict, patch)
         return
